@@ -39,14 +39,16 @@ export async function POST(req: NextRequest) {
       contents: [{ role: 'user', parts: [{ text: userMessage }] }],
     })
     parsed = JSON.parse(result.response.text())
-  } catch {
+  } catch (err) {
+    console.error('[analyse] Gemini call or JSON.parse failed:', err)
     return NextResponse.json({ error: 'Analysis failed, please try again' }, { status: 500 })
   }
 
   let diagnosis
   try {
     diagnosis = validateDiagnosis(parsed)
-  } catch {
+  } catch (err) {
+    console.error('[analyse] validateDiagnosis failed:', err)
     return NextResponse.json({ error: 'Analysis failed, please try again' }, { status: 500 })
   }
 
