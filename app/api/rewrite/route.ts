@@ -1,8 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { getRewriteModel } from '@/lib/gemini'
-import { REWRITE_SYSTEM_PROMPT } from '@/lib/prompts'
-import { TONE_OPTIONS, ToneOption } from '@/lib/types'
+import { REWRITE_SYSTEM_PROMPT, buildRewriteUserMessage } from '@/lib/prompts'
+import { AllRewrites } from '@/lib/types'
+
+function validateRewrites(raw: unknown): AllRewrites {
+  if (typeof raw !== 'object' || raw === null) throw new Error('not an object')
+  const obj = raw as Record<string, unknown>
+  if (typeof obj.direct !== 'string' || !obj.direct.trim()) throw new Error('missing direct')
+  if (typeof obj.warm !== 'string' || !obj.warm.trim()) throw new Error('missing warm')
+  if (typeof obj.professional !== 'string' || !obj.professional.trim()) throw new Error('missing professional')
+  return { direct: obj.direct, warm: obj.warm, professional: obj.professional }
+}
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? 'unknown'
@@ -24,34 +33,25 @@ export async function POST(req: NextRequest) {
 
   const obj = body as Record<string, unknown>
 
-  if (!TONE_OPTIONS.includes(obj.tone as ToneOption)) {
-    return NextResponse.json({ error: 'Invalid tone' }, { status: 400 })
-  }
-
-  const tone = obj.tone as ToneOption
-
   if (typeof obj.jobAd !== 'string' || obj.jobAd.trim() === '') {
     return NextResponse.json({ error: 'jobAd is required' }, { status: 400 })
   }
 
-  const contextLines: string[] = []
-  if (typeof obj.companyName === 'string' && obj.companyName) {
-    contextLines.push(`Company: ${obj.companyName}`)
-  }
-  if (typeof obj.companyDesc === 'string' && obj.companyDesc) {
-    contextLines.push(`About the company: ${obj.companyDesc}`)
-  }
-  const userMessage = [...contextLines, `Original job ad:\n${obj.jobAd}`].join('\n\n')
+  const companyName = typeof obj.companyName === 'string' ? obj.companyName : undefined
+  const companyDesc = typeof obj.companyDesc === 'string' ? obj.companyDesc : undefined
+  const userMessage = buildRewriteUserMessage(obj.jobAd, companyName, companyDesc)
 
   try {
     const model = getRewriteModel()
-    const systemPrompt = REWRITE_SYSTEM_PROMPT.replace('{TONE}', tone)
     const result = await model.generateContent({
-      systemInstruction: systemPrompt,
+      systemInstruction: REWRITE_SYSTEM_PROMPT,
       contents: [{ role: 'user', parts: [{ text: userMessage }] }],
     })
-    return NextResponse.json({ rewrite: result.response.text().trim() })
-  } catch {
+    const raw = result.response.text()
+    const rewrites = validateRewrites(JSON.parse(raw))
+    return NextResponse.json(rewrites)
+  } catch (err) {
+    console.error('[rewrite] failed:', err)
     return NextResponse.json({ error: 'Rewrite failed, please try again' }, { status: 500 })
   }
 }

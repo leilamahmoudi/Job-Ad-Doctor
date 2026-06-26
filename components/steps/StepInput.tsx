@@ -13,7 +13,6 @@ interface StepInputProps {
   onCompanyNameChange: (v: string) => void
   onCompanyDescChange: (v: string) => void
   onSubmit: () => void
-  isLoading: boolean
   error: string | null
 }
 
@@ -25,7 +24,6 @@ export function StepInput({
   onCompanyNameChange,
   onCompanyDescChange,
   onSubmit,
-  isLoading,
   error,
 }: StepInputProps) {
   const [contextOpen, setContextOpen] = useState(false)
@@ -96,8 +94,8 @@ export function StepInput({
         )}
       </div>
 
-      <Button onClick={handleSubmit} disabled={isLoading} className="w-full">
-        {isLoading ? 'Analysing…' : 'Analyse my job ad →'}
+      <Button onClick={handleSubmit} className="w-full">
+        Analyse my job ad →
       </Button>
     </div>
   )

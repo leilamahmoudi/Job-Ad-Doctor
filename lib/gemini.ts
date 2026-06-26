@@ -9,8 +9,9 @@ export const getAnalyseModel = () =>
     generationConfig: { responseMimeType: 'application/json' },
   })
 
-// Plain text mode: rewrite output is prose, not JSON
+// JSON mode: rewrite now returns all 3 tones as structured JSON
 export const getRewriteModel = () =>
   genAI.getGenerativeModel({
     model: 'gemini-2.5-flash',
+    generationConfig: { responseMimeType: 'application/json' },
   })

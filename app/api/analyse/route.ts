@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { validateAnalyseInput } from './validate'
 import { getAnalyseModel } from '@/lib/gemini'
-import { ANALYSE_SYSTEM_PROMPT } from '@/lib/prompts'
+import { ANALYSE_SYSTEM_PROMPT, buildAnalyseUserMessage } from '@/lib/prompts'
 import { validateDiagnosis } from '@/lib/validate-diagnosis'
 
 export async function POST(req: NextRequest) {
@@ -25,11 +25,7 @@ export async function POST(req: NextRequest) {
   }
 
   const { jobAd, companyName, companyDesc } = validation
-
-  const contextLines: string[] = []
-  if (companyName) contextLines.push(`Company: ${companyName}`)
-  if (companyDesc) contextLines.push(`About the company: ${companyDesc}`)
-  const userMessage = [...contextLines, `Job ad:\n${jobAd}`].join('\n\n')
+  const userMessage = buildAnalyseUserMessage(jobAd, companyName, companyDesc)
 
   let parsed: unknown
   try {
@@ -50,7 +46,7 @@ export async function POST(req: NextRequest) {
   try {
     diagnosis = validateDiagnosis(parsed)
   } catch (err) {
-    console.error('[analyse] validateDiagnosis failed:', err)
+    console.error('[analyse] validateDiagnosis failed:', err, JSON.stringify(parsed).slice(0, 300))
     return NextResponse.json({ error: 'Analysis failed, please try again' }, { status: 500 })
   }
 

@@ -51,3 +51,9 @@ export const TONE_LABELS: Record<ToneOption, { label: string; description: strin
   warm: { label: 'Warm & human', description: 'Conversational, inviting, personality-forward' },
   professional: { label: 'Professional & structured', description: 'Formal but specific' },
 }
+
+export interface AllRewrites {
+  direct: string
+  warm: string
+  professional: string
+}

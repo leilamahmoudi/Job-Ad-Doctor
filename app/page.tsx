@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { DiagnosisResult, ToneOption } from '@/lib/types'
+import { AllRewrites, DiagnosisResult, ToneOption } from '@/lib/types'
 import { ProgressIndicator } from '@/components/ProgressIndicator'
 import { LoadingState } from '@/components/LoadingState'
 import { StepInput } from '@/components/steps/StepInput'
@@ -15,6 +15,13 @@ const ANALYSE_MESSAGES = [
   'Almost there…',
 ]
 
+const REWRITE_MESSAGES = [
+  'Rewriting in 3 tones…',
+  'Preserving your job details…',
+  'Polishing the language…',
+  'Almost ready…',
+]
+
 export default function Home() {
   const [step, setStep] = useState<1 | 2 | 3>(1)
   const [jobAd, setJobAd] = useState('')
@@ -22,13 +29,16 @@ export default function Home() {
   const [companyDesc, setCompanyDesc] = useState('')
   const [diagnosis, setDiagnosis] = useState<DiagnosisResult | null>(null)
   const [tone, setTone] = useState<ToneOption>('warm')
-  const [rewriteCache, setRewriteCache] = useState<Partial<Record<ToneOption, string>>>({})
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [rewrites, setRewrites] = useState<AllRewrites | null>(null)
+
+  const [isAnalysing, setIsAnalysing] = useState(false)
+  const [isRewriting, setIsRewriting] = useState(false)
+  const [analyseError, setAnalyseError] = useState<string | null>(null)
+  const [rewriteError, setRewriteError] = useState<string | null>(null)
 
   const handleAnalyse = async () => {
-    setIsLoading(true)
-    setError(null)
+    setIsAnalysing(true)
+    setAnalyseError(null)
     try {
       const res = await fetch('/api/analyse', {
         method: 'POST',
@@ -37,51 +47,39 @@ export default function Home() {
       })
       const data = await res.json()
       if (!res.ok) {
-        setError(data.error ?? 'Something went wrong. Please try again.')
+        setAnalyseError(data.error ?? 'Something went wrong. Please try again.')
         return
       }
       setDiagnosis(data)
       setStep(2)
     } catch {
-      setError('Something went wrong. Please try again.')
+      setAnalyseError('Something went wrong. Please try again.')
     } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const fetchRewrite = async (selectedTone: ToneOption) => {
-    setIsLoading(true)
-    setError(null)
-    try {
-      const res = await fetch('/api/rewrite', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jobAd, tone: selectedTone, companyName, companyDesc }),
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        setError(data.error ?? 'Rewrite failed. Please try again.')
-        return
-      }
-      setRewriteCache((prev) => ({ ...prev, [selectedTone]: data.rewrite }))
-    } catch {
-      setError('Rewrite failed. Please try again.')
-    } finally {
-      setIsLoading(false)
+      setIsAnalysing(false)
     }
   }
 
   const handleGoToRewrite = async () => {
-    setStep(3)
-    if (!rewriteCache[tone]) {
-      await fetchRewrite(tone)
+    setIsRewriting(true)
+    setRewriteError(null)
+    try {
+      const res = await fetch('/api/rewrite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobAd, companyName, companyDesc }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setRewriteError(data.error ?? 'Rewrite failed. Please try again.')
+        return
+      }
+      setRewrites(data)
+      setStep(3)
+    } catch {
+      setRewriteError('Rewrite failed. Please try again.')
+    } finally {
+      setIsRewriting(false)
     }
-  }
-
-  const handleToneChange = async (newTone: ToneOption) => {
-    setTone(newTone)
-    if (rewriteCache[newTone]) return
-    await fetchRewrite(newTone)
   }
 
   return (
@@ -91,41 +89,41 @@ export default function Home() {
         <div className="w-full max-w-lg">
           <div key={step} className="animate-in fade-in slide-in-from-bottom-2 duration-300">
             {step === 1 && (
-              <>
-                {isLoading ? (
-                  <LoadingState messages={ANALYSE_MESSAGES} />
-                ) : (
-                  <StepInput
-                    jobAd={jobAd}
-                    companyName={companyName}
-                    companyDesc={companyDesc}
-                    onJobAdChange={setJobAd}
-                    onCompanyNameChange={setCompanyName}
-                    onCompanyDescChange={setCompanyDesc}
-                    onSubmit={handleAnalyse}
-                    isLoading={isLoading}
-                    error={error}
-                  />
-                )}
-              </>
+              isAnalysing ? (
+                <LoadingState messages={ANALYSE_MESSAGES} />
+              ) : (
+                <StepInput
+                  jobAd={jobAd}
+                  companyName={companyName}
+                  companyDesc={companyDesc}
+                  onJobAdChange={setJobAd}
+                  onCompanyNameChange={setCompanyName}
+                  onCompanyDescChange={setCompanyDesc}
+                  onSubmit={handleAnalyse}
+                  error={analyseError}
+                />
+              )
             )}
 
             {step === 2 && diagnosis && (
-              <StepDiagnosis
-                diagnosis={diagnosis}
-                onNext={handleGoToRewrite}
-                isLoading={isLoading}
-              />
+              isRewriting ? (
+                <LoadingState messages={REWRITE_MESSAGES} />
+              ) : (
+                <StepDiagnosis
+                  diagnosis={diagnosis}
+                  onNext={handleGoToRewrite}
+                  onBack={() => setStep(1)}
+                  error={rewriteError}
+                />
+              )
             )}
 
-            {step === 3 && (
+            {step === 3 && rewrites && (
               <StepRewrite
                 tone={tone}
-                rewriteCache={rewriteCache}
-                isLoading={isLoading}
-                error={error}
-                onToneChange={handleToneChange}
-                onRetry={() => fetchRewrite(tone)}
+                rewrites={rewrites}
+                onToneChange={setTone}
+                onBack={() => setStep(2)}
               />
             )}
           </div>

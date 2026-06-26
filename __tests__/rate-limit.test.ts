@@ -1,10 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-// Override env before importing the module
 vi.stubEnv('NODE_ENV', 'production')
 
-// We need to re-import with a fresh module state for each test group,
-// so we use a factory that resets the store by re-importing
 let checkRateLimit: (ip: string) => { allowed: boolean; remaining: number }
 
 beforeEach(async () => {
@@ -14,13 +11,15 @@ beforeEach(async () => {
   checkRateLimit = mod.checkRateLimit
 })
 
-describe('checkRateLimit', () => {
+const HOURLY_MS = 60 * 60 * 1000
+const DAILY_MS = 24 * 60 * 60 * 1000
+
+describe('checkRateLimit — hourly window', () => {
   it('allows the first request', () => {
-    const result = checkRateLimit('1.1.1.1')
-    expect(result.allowed).toBe(true)
+    expect(checkRateLimit('1.1.1.1').allowed).toBe(true)
   })
 
-  it('allows up to the limit and blocks at limit+1', () => {
+  it('allows up to the hourly limit and blocks at limit+1', () => {
     const ip = '2.2.2.2'
     for (let i = 0; i < 10; i++) {
       expect(checkRateLimit(ip).allowed).toBe(true)
@@ -28,13 +27,12 @@ describe('checkRateLimit', () => {
     expect(checkRateLimit(ip).allowed).toBe(false)
   })
 
-  it('resets after the window expires', () => {
+  it('resets after the hourly window expires', () => {
     vi.useFakeTimers()
     const ip = '3.3.3.3'
     for (let i = 0; i < 10; i++) checkRateLimit(ip)
     expect(checkRateLimit(ip).allowed).toBe(false)
-
-    vi.advanceTimersByTime(60 * 60 * 1000 + 1)
+    vi.advanceTimersByTime(HOURLY_MS + 1)
     expect(checkRateLimit(ip).allowed).toBe(true)
     vi.useRealTimers()
   })
@@ -49,9 +47,33 @@ describe('checkRateLimit', () => {
 
   it('decrements remaining correctly', () => {
     const ip = '6.6.6.6'
-    const r1 = checkRateLimit(ip)
-    expect(r1.remaining).toBe(9)
-    const r2 = checkRateLimit(ip)
-    expect(r2.remaining).toBe(8)
+    expect(checkRateLimit(ip).remaining).toBe(9)
+    expect(checkRateLimit(ip).remaining).toBe(8)
+  })
+})
+
+describe('checkRateLimit — daily window', () => {
+  it('blocks once daily limit is reached even after hourly window resets', () => {
+    vi.useFakeTimers()
+    const ip = '7.7.7.7'
+    // Exhaust hourly limit (10), advance past it, exhaust again (20 total = daily limit)
+    for (let i = 0; i < 10; i++) checkRateLimit(ip)
+    vi.advanceTimersByTime(HOURLY_MS + 1)
+    for (let i = 0; i < 10; i++) checkRateLimit(ip)
+    // 21st call should be blocked by daily limit
+    expect(checkRateLimit(ip).allowed).toBe(false)
+    vi.useRealTimers()
+  })
+
+  it('resets after the daily window expires', () => {
+    vi.useFakeTimers()
+    const ip = '8.8.8.8'
+    for (let i = 0; i < 10; i++) checkRateLimit(ip)
+    vi.advanceTimersByTime(HOURLY_MS + 1)
+    for (let i = 0; i < 10; i++) checkRateLimit(ip)
+    expect(checkRateLimit(ip).allowed).toBe(false)
+    vi.advanceTimersByTime(DAILY_MS + 1)
+    expect(checkRateLimit(ip).allowed).toBe(true)
+    vi.useRealTimers()
   })
 })
