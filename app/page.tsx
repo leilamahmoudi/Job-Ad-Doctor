@@ -31,14 +31,29 @@ export default function Home() {
   const [tone, setTone] = useState<ToneOption>('warm')
   const [rewrites, setRewrites] = useState<AllRewrites | null>(null)
 
+  const [hasIterated, setHasIterated] = useState(false)
+
   const [isAnalysing, setIsAnalysing] = useState(false)
   const [isRewriting, setIsRewriting] = useState(false)
   const [analyseError, setAnalyseError] = useState<string | null>(null)
   const [rewriteError, setRewriteError] = useState<string | null>(null)
+  const [iterateError, setIterateError] = useState<string | null>(null)
+
+  const runAnalyse = async (extraBody: Record<string, string> = {}) => {
+    const res = await fetch('/api/analyse', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jobAd, companyName, companyDesc, ...extraBody }),
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.error ?? 'Something went wrong. Please try again.')
+    return data
+  }
 
   const handleAnalyse = async () => {
     setIsAnalysing(true)
     setAnalyseError(null)
+    setHasIterated(false)
     try {
       const res = await fetch('/api/analyse', {
         method: 'POST',
@@ -54,6 +69,20 @@ export default function Home() {
       setStep(2)
     } catch {
       setAnalyseError('Something went wrong. Please try again.')
+    } finally {
+      setIsAnalysing(false)
+    }
+  }
+
+  const handleIterate = async (note: string) => {
+    setIsAnalysing(true)
+    setIterateError(null)
+    try {
+      const data = await runAnalyse({ iterationNote: note })
+      setDiagnosis(data)
+      setHasIterated(true)
+    } catch (err) {
+      setIterateError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
     } finally {
       setIsAnalysing(false)
     }
@@ -106,14 +135,19 @@ export default function Home() {
             )}
 
             {step === 2 && diagnosis && (
-              isRewriting ? (
+              isAnalysing ? (
+                <LoadingState messages={ANALYSE_MESSAGES} />
+              ) : isRewriting ? (
                 <LoadingState messages={REWRITE_MESSAGES} />
               ) : (
                 <StepDiagnosis
                   diagnosis={diagnosis}
                   onNext={handleGoToRewrite}
                   onBack={() => setStep(1)}
+                  onIterate={handleIterate}
+                  hasIterated={hasIterated}
                   error={rewriteError}
+                  iterateError={iterateError}
                 />
               )
             )}

@@ -24,8 +24,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: validation.error }, { status: validation.status })
   }
 
-  const { jobAd, companyName, companyDesc } = validation
-  const userMessage = buildAnalyseUserMessage(jobAd, companyName, companyDesc)
+  const { jobAd, companyName, companyDesc, iterationNote } = validation
+  const userMessage = buildAnalyseUserMessage(jobAd, companyName, companyDesc, iterationNote)
 
   let parsed: unknown
   try {

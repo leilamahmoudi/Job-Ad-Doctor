@@ -1,5 +1,5 @@
 export function validateAnalyseInput(body: unknown):
-  | { valid: true; jobAd: string; companyName?: string; companyDesc?: string }
+  | { valid: true; jobAd: string; companyName?: string; companyDesc?: string; iterationNote?: string }
   | { valid: false; error: string; status: number } {
   if (typeof body !== 'object' || body === null) {
     return { valid: false, error: 'Invalid request body', status: 400 }
@@ -29,5 +29,8 @@ export function validateAnalyseInput(body: unknown):
     jobAd: obj.jobAd,
     companyName: typeof obj.companyName === 'string' ? obj.companyName : undefined,
     companyDesc: typeof obj.companyDesc === 'string' ? obj.companyDesc : undefined,
+    iterationNote: typeof obj.iterationNote === 'string' && obj.iterationNote.trim()
+      ? obj.iterationNote.trim()
+      : undefined,
   }
 }
