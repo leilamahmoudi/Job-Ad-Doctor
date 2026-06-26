@@ -8,6 +8,17 @@ export function validateDiagnosis(raw: unknown): DiagnosisResult {
   const obj = raw as Record<string, unknown>
 
   if (typeof obj.isJobAd !== 'boolean') throw new Error('isJobAd must be boolean')
+
+  // Early exit shapes: Gemini may omit isLegal/weaknesses when isJobAd or isLegal is false
+  if (obj.isJobAd === false) {
+    return { isJobAd: false, isLegal: true, weaknesses: {} as DiagnosisResult['weaknesses'] }
+  }
+
+  if (obj.isLegal === false) {
+    return { isJobAd: true, isLegal: false, weaknesses: {} as DiagnosisResult['weaknesses'] }
+  }
+
+  // Full shape required when isJobAd:true and isLegal:true
   if (typeof obj.isLegal !== 'boolean') throw new Error('isLegal must be boolean')
 
   if (typeof obj.weaknesses !== 'object' || obj.weaknesses === null) {

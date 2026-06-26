@@ -38,7 +38,9 @@ export async function POST(req: NextRequest) {
       systemInstruction: ANALYSE_SYSTEM_PROMPT,
       contents: [{ role: 'user', parts: [{ text: userMessage }] }],
     })
-    parsed = JSON.parse(result.response.text())
+    const raw = result.response.text()
+    console.log('[analyse] Gemini raw response:', raw.slice(0, 500))
+    parsed = JSON.parse(raw)
   } catch (err) {
     console.error('[analyse] Gemini call or JSON.parse failed:', err)
     return NextResponse.json({ error: 'Analysis failed, please try again' }, { status: 500 })
