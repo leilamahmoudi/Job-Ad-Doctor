@@ -1,0 +1,65 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { checkRateLimit } from '@/lib/rate-limit'
+import { validateAnalyseInput } from './validate'
+import { getAnalyseModel } from '@/lib/gemini'
+import { ANALYSE_SYSTEM_PROMPT } from '@/lib/prompts'
+import { validateDiagnosis } from '@/lib/validate-diagnosis'
+
+export async function POST(req: NextRequest) {
+  const ip = req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? 'unknown'
+  const { allowed } = checkRateLimit(ip)
+  if (!allowed) {
+    return NextResponse.json({ error: "You've hit the limit. Try again in a bit." }, { status: 429 })
+  }
+
+  let body: unknown
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+  }
+
+  const validation = validateAnalyseInput(body)
+  if (!validation.valid) {
+    return NextResponse.json({ error: validation.error }, { status: validation.status })
+  }
+
+  const { jobAd, companyName, companyDesc } = validation
+
+  const contextLines: string[] = []
+  if (companyName) contextLines.push(`Company: ${companyName}`)
+  if (companyDesc) contextLines.push(`About the company: ${companyDesc}`)
+  const userMessage = [...contextLines, `Job ad:\n${jobAd}`].join('\n\n')
+
+  let parsed: unknown
+  try {
+    const model = getAnalyseModel()
+    const result = await model.generateContent({
+      systemInstruction: ANALYSE_SYSTEM_PROMPT,
+      contents: [{ role: 'user', parts: [{ text: userMessage }] }],
+    })
+    parsed = JSON.parse(result.response.text())
+  } catch {
+    return NextResponse.json({ error: 'Analysis failed, please try again' }, { status: 500 })
+  }
+
+  let diagnosis
+  try {
+    diagnosis = validateDiagnosis(parsed)
+  } catch {
+    return NextResponse.json({ error: 'Analysis failed, please try again' }, { status: 500 })
+  }
+
+  if (!diagnosis.isJobAd) {
+    return NextResponse.json(
+      { error: "This doesn't look like a job ad. Try pasting the full posting." },
+      { status: 422 }
+    )
+  }
+
+  if (!diagnosis.isLegal) {
+    return NextResponse.json({ error: "We can't analyse this ad." }, { status: 422 })
+  }
+
+  return NextResponse.json(diagnosis)
+}
