@@ -30,6 +30,17 @@ export const WEAKNESS_LABELS: Record<WeaknessKey, string> = {
   corporate_tone: 'Overly formal / corporate tone',
 }
 
+export const STRENGTH_LABELS: Record<WeaknessKey, string> = {
+  generic_language: 'Specific, compelling language',
+  weak_employer_branding: 'Strong employer brand',
+  unclear_role: 'Clear role and responsibilities',
+  bias_risks: 'Inclusive and bias-free',
+  unrealistic_requirements: 'Realistic requirements',
+  missing_value_prop: 'Strong candidate value proposition',
+  compensation_opacity: 'Transparent compensation',
+  corporate_tone: 'Engaging, human tone',
+}
+
 export interface WeaknessResult {
   flagged: boolean
   explanation?: string

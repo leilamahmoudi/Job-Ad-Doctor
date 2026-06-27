@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkRateLimit } from '@/lib/rate-limit'
-import { getRewriteModel } from '@/lib/gemini'
+import { generateJSON } from '@/lib/gemini'
 import { REWRITE_SYSTEM_PROMPT, buildRewriteUserMessage } from '@/lib/prompts'
 import { AllRewrites } from '@/lib/types'
 
@@ -39,19 +39,49 @@ export async function POST(req: NextRequest) {
 
   const companyName = typeof obj.companyName === 'string' ? obj.companyName : undefined
   const companyDesc = typeof obj.companyDesc === 'string' ? obj.companyDesc : undefined
-  const userMessage = buildRewriteUserMessage(obj.jobAd, companyName, companyDesc)
+  const iterationNote = typeof obj.iterationNote === 'string' && obj.iterationNote.trim()
+    ? obj.iterationNote.trim()
+    : undefined
+  const userMessage = buildRewriteUserMessage(obj.jobAd, companyName, companyDesc, iterationNote)
 
+  let raw: string
   try {
-    const model = getRewriteModel()
-    const result = await model.generateContent({
-      systemInstruction: REWRITE_SYSTEM_PROMPT,
-      contents: [{ role: 'user', parts: [{ text: userMessage }] }],
-    })
-    const raw = result.response.text()
-    const rewrites = validateRewrites(JSON.parse(raw))
-    return NextResponse.json(rewrites)
+    const { text, model } = await generateJSON(REWRITE_SYSTEM_PROMPT, userMessage)
+    raw = text
+    console.log(`[rewrite] model=${model} raw (first 400 chars):`, raw.slice(0, 400))
   } catch (err) {
-    console.error('[rewrite] failed:', err)
+    const msg = err instanceof Error ? err.message : String(err)
+    if (msg.includes('429') || msg.includes('quota') || msg.includes('RESOURCE_EXHAUSTED')) {
+      console.error('[rewrite] All models quota-exhausted')
+      return NextResponse.json(
+        { error: "We've hit our AI usage limit. Please try again in a few minutes." },
+        { status: 429 }
+      )
+    }
+    if (msg.includes('API_KEY') || msg.includes('401') || msg.includes('403')) {
+      console.error('[rewrite] API key issue — check GEMINI_API_KEY env var')
+    }
+    console.error('[rewrite] Gemini call failed:', msg)
     return NextResponse.json({ error: 'Rewrite failed, please try again' }, { status: 500 })
   }
+
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(raw)
+  } catch (err) {
+    console.error('[rewrite] JSON.parse failed:', err)
+    console.error('[rewrite] Full raw response:', raw)
+    return NextResponse.json({ error: 'Rewrite failed, please try again' }, { status: 500 })
+  }
+
+  let rewrites: AllRewrites
+  try {
+    rewrites = validateRewrites(parsed)
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('[rewrite] validateRewrites failed:', msg, JSON.stringify(parsed).slice(0, 300))
+    return NextResponse.json({ error: 'Rewrite failed, please try again' }, { status: 500 })
+  }
+
+  return NextResponse.json(rewrites)
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
+import { ChevronRight, ChevronDown } from 'lucide-react'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 
@@ -47,21 +47,16 @@ export function StepInput({
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 leading-tight">
-          Your job ad, rewritten by an expert — in seconds.
-        </h1>
-        <p className="text-gray-500 mt-2 text-sm">
-          Paste it below — we&apos;ll diagnose what&apos;s weak and rewrite it in seconds.
-        </p>
-      </div>
+      <h1 className="text-4xl font-bold text-foreground leading-[1.15]">
+        Your job ad, rewritten by an expert.
+      </h1>
 
       <div className="flex flex-col gap-2">
         <Textarea
-          placeholder="Paste your job ad here…"
+          placeholder="Paste your job ad here..."
           value={jobAd}
           onChange={(e) => onJobAdChange(e.target.value)}
-          className="min-h-[160px] text-sm resize-none"
+          className="min-h-[160px] text-sm resize-none rounded-xl"
         />
         {(validationError || error) && (
           <p className="text-sm text-red-600">{validationError ?? error}</p>
@@ -72,9 +67,10 @@ export function StepInput({
         <button
           type="button"
           onClick={() => setContextOpen((o) => !o)}
-          className="text-sm text-blue-600 hover:underline flex items-center gap-1"
+          className="text-sm text-primary hover:text-primary/80 flex items-center gap-1 font-medium cursor-pointer"
         >
-          {contextOpen ? '▾' : '▸'} Add company context (improves results)
+          {contextOpen ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
+          Add company context (improves results)
         </button>
         {contextOpen && (
           <div className="mt-3 flex flex-col gap-3">
@@ -82,21 +78,24 @@ export function StepInput({
               placeholder="Company name"
               value={companyName}
               onChange={(e) => onCompanyNameChange(e.target.value)}
-              className="text-sm"
+              className="text-sm rounded-xl"
             />
             <Input
               placeholder="One-line description (e.g. We build climate tech for SMEs)"
               value={companyDesc}
               onChange={(e) => onCompanyDescChange(e.target.value)}
-              className="text-sm"
+              className="text-sm rounded-xl"
             />
           </div>
         )}
       </div>
 
-      <Button onClick={handleSubmit} className="w-full">
-        Analyse my job ad →
-      </Button>
+      <button
+        onClick={handleSubmit}
+        className="btn-amber w-full py-3 rounded-xl font-semibold text-sm transition-colors duration-150"
+      >
+        Analyse my job ad
+      </button>
     </div>
   )
 }
