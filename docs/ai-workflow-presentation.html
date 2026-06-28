@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How I worked with AI — Job Ad Doctor</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface2: #1e2530;
+      --border: rgba(99,179,237,0.15);
+      --blue: #63b3ed;
+      --blue-dim: rgba(99,179,237,0.12);
+      --teal: #4fd1c5;
+      --teal-dim: rgba(79,209,197,0.12);
+      --amber: #f6ad55;
+      --amber-dim: rgba(246,173,85,0.1);
+      --green: #68d391;
+      --red: #fc8181;
+      --text: #e2e8f0;
+      --muted: #8892a4;
+      --faint: #4a5568;
+    }
+    html, body { height: 100%; }
+    body { background: var(--bg); font-family: 'JetBrains Mono', 'Fira Code', monospace; color: var(--text); display: flex; flex-direction: column; min-height: 100vh; }
+    .wrap { flex: 1; display: flex; flex-direction: column; max-width: 760px; margin: 0 auto; width: 100%; }
+    .slide { display: none; flex: 1; padding: 2.25rem 2.5rem 1.5rem; flex-direction: column; justify-content: center; }
+    .slide.active { display: flex; }
+
+    .slide-num { font-size: 11px; color: var(--faint); letter-spacing: 0.12em; margin-bottom: 1.75rem; }
+    .slide-num span { color: var(--blue); }
+
+    h1 { font-size: 22px; font-weight: 500; color: var(--text); line-height: 1.35; margin-bottom: 0.6rem; }
+    h2 { font-size: 18px; font-weight: 500; color: var(--text); line-height: 1.35; margin-bottom: 0.75rem; }
+    p { font-size: 13px; color: var(--muted); line-height: 1.8; }
+
+    .tag { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--blue); background: var(--blue-dim); border: 0.5px solid rgba(99,179,237,0.25); padding: 4px 12px; border-radius: 99px; margin-bottom: 1rem; letter-spacing: 0.04em; }
+    .tag::before { content: '//'; opacity: 0.5; }
+
+    .prompt-box { background: var(--surface2); border-left: 2px solid var(--blue); padding: 1rem 1.25rem; margin: 1rem 0; font-size: 12.5px; color: #a0aec0; line-height: 1.8; font-style: italic; border-radius: 0 6px 6px 0; }
+    .prompt-label { font-size: 10px; font-weight: 500; color: var(--blue); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem; font-style: normal; }
+
+    .output-label { font-size: 10px; color: var(--faint); margin-top: 0.75rem; letter-spacing: 0.08em; }
+    .output-label span { color: var(--green); }
+
+    .flow { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 1.25rem; }
+    .flow-step { font-size: 12px; color: var(--teal); background: var(--teal-dim); border: 0.5px solid rgba(79,209,197,0.2); border-radius: 6px; padding: 6px 14px; }
+    .flow-arrow { color: var(--faint); font-size: 14px; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 1.1rem; }
+    .card { background: var(--surface2); border: 0.5px solid var(--border); border-radius: 8px; padding: 1rem 1.1rem; }
+    .card-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.6rem; }
+    .card-label.green { color: var(--green); }
+    .card-label.red { color: var(--red); }
+    .card p { font-size: 12.5px; }
+
+    ul { padding-left: 0; list-style: none; margin-top: 0.75rem; }
+    ul li { font-size: 13px; color: var(--muted); line-height: 1.9; padding-left: 1.2rem; position: relative; }
+    ul li::before { content: '>'; position: absolute; left: 0; color: var(--blue); font-size: 11px; }
+
+    .grid-roles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 1rem; }
+    .role-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; }
+    .role-card .role-name { font-size: 12px; color: var(--text); margin-bottom: 3px; }
+    .role-card .role-lens { font-size: 11px; color: var(--faint); }
+
+    .headline-sub { font-size: 14px; color: var(--muted); margin-bottom: 1.5rem; }
+    .takeway-box { background: var(--surface2); border: 0.5px solid rgba(79,209,197,0.2); border-radius: 8px; padding: 1.1rem 1.25rem; margin-top: 1.25rem; }
+    .takeway-box p { font-size: 13px; color: #a0aec0; line-height: 1.8; }
+
+    .nav { display: flex; align-items: center; justify-content: space-between; padding: 1rem 2.5rem; border-top: 0.5px solid var(--border); background: var(--surface); }
+    .dots { display: flex; gap: 5px; }
+    .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--faint); cursor: pointer; transition: background 0.2s, transform 0.2s; }
+    .dot.active { background: var(--blue); transform: scale(1.3); }
+
+    .nav-btn {
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 500;
+      color: #ffffff;
+      background: var(--faint);
+      border: none;
+      padding: 7px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+    }
+    .nav-btn:disabled { opacity: 0.2; cursor: default; }
+  </style>
+</head>
+<body>
+
+<div class="wrap">
+  <div id="slides" style="flex:1; display:flex; flex-direction:column;">
+
+    <div class="slide active" id="s0">
+      <div class="slide-num"><span>01</span> / 07</div>
+      <h1>How I worked with AI on this project</h1>
+      <p class="headline-sub">Not AI writing code. AI executing inside constraints I designed first.</p>
+      <div class="flow">
+        <div class="flow-step">product spec</div>
+        <div class="flow-arrow">-&gt;</div>
+        <div class="flow-step">role documents</div>
+        <div class="flow-arrow">-&gt;</div>
+        <div class="flow-step">build plan</div>
+        <div class="flow-arrow">-&gt;</div>
+        <div class="flow-step">implementation</div>
+      </div>
+    </div>
+
+    <div class="slide" id="s1">
+      <div class="slide-num"><span>02</span> / 07</div>
+      <div class="tag">the approach</div>
+      <h2>Spec before code</h2>
+      <p>Before writing a single component, I used Claude Code to build the constraints of the project first. Not just a product spec, but the roles that would normally exist around a product like this.</p>
+      <div class="grid-roles">
+        <div class="role-card"><div class="role-name">Senior software engineer</div><div class="role-lens">complexity must earn its place</div></div>
+        <div class="role-card"><div class="role-name">Senior prompt / AI engineer</div><div class="role-lens">output must be consistent and parseable</div></div>
+        <div class="role-card"><div class="role-name">Employer branding specialist</div><div class="role-lens">never sound like a robot</div></div>
+        <div class="role-card"><div class="role-name">Performance marketer</div><div class="role-lens">full value first, no friction gates</div></div>
+        <div class="role-card"><div class="role-name">Product designer</div><div class="role-lens">mobile viewport, every state covered</div></div>
+        <div class="role-card"><div class="role-name">Recruitment copywriter</div><div class="role-lens">UI copy should sound human</div></div>
+      </div>
+    </div>
+
+    <div class="slide" id="s2">
+      <div class="slide-num"><span>03</span> / 07</div>
+      <div class="tag">prompt 1</div>
+      <h2>Defining the product first</h2>
+      <div class="prompt-box">
+        <div class="prompt-label">actual prompt</div>
+        "I'm building the Job Ad Doctor from the Teamtailor brief. Before we write any code, I want a single product definition document that covers: who the user types are, the root cause of bad job ads, what good looks like, the weakness categories, the user journey, error states, and success metrics. This becomes the source of truth."
+      </div>
+      <p class="output-label"><span>output:</span> docs/project-owner-expectations.md</p>
+      <p style="margin-top: 0.6rem;">Nothing was built until this existed. Every role and technical decision was held against it.</p>
+    </div>
+
+    <div class="slide" id="s3">
+      <div class="slide-num"><span>04</span> / 07</div>
+      <div class="tag">prompt 2</div>
+      <h2>Generating the specialist roles</h2>
+      <div class="prompt-box">
+        <div class="prompt-label">actual prompt</div>
+        "Now create the specialist roles around this product. For each role, define: the lens they use to evaluate decisions, their quality bar, and the decisions they own. These will be used as constraints for implementation."
+      </div>
+      <p>This gave me six different lenses before a line of code: engineering simplicity, prompt reliability, UX clarity, employer-brand authenticity, conversion honesty, UI language quality. Later build decisions could be checked against all of them.</p>
+    </div>
+
+    <div class="slide" id="s4">
+      <div class="slide-num"><span>05</span> / 07</div>
+      <div class="tag">prompt 3</div>
+      <h2>Architectural planning against the spec</h2>
+      <div class="prompt-box">
+        <div class="prompt-label">actual prompt</div>
+        "Using the product owner doc and all specialist role docs as constraints, create the build plan. Every architectural decision must be defensible on trust, scalability, latency, cost, and user experience."
+      </div>
+      <ul>
+        <li>Two LLM calls: better latency, clearer user feedback loop</li>
+        <li>Strict JSON output so the UI can trust and validate it</li>
+        <li>Server-side API routes: keys never exposed client-side</li>
+        <li>Rate limiting specced from day one, stubbed intentionally</li>
+        <li>Prefetch rewrite in background while user reads diagnosis</li>
+      </ul>
+    </div>
+
+    <div class="slide" id="s5">
+      <div class="slide-num"><span>06</span> / 07</div>
+      <div class="tag">reflection</div>
+      <h2>Where it helped vs. got in the way</h2>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-label green">helped</div>
+          <p>Claude Code never drifted because it had the product definition and role quality bars as context. It did not suggest severity scores (spec said present/absent only). It did not suggest auth (spec said zero friction). Constraint docs did the guardrail work.</p>
+        </div>
+        <div class="card">
+          <div class="card-label red">got in the way</div>
+          <p>When given too much freedom it reached for abstraction. It proposed a state machine for rewrite prefetching. I simplified to two refs: one cache ref, one promise ref. Human judgment kept complexity proportional to the problem.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide" id="s6">
+      <div class="slide-num"><span>07</span> / 07</div>
+      <h2>The takeaway</h2>
+      <div class="flow">
+        <div class="flow-step">define constraints</div>
+        <div class="flow-arrow">-&gt;</div>
+        <div class="flow-step">pressure-test with roles</div>
+        <div class="flow-arrow">-&gt;</div>
+        <div class="flow-step">execute with AI</div>
+        <div class="flow-arrow">-&gt;</div>
+        <div class="flow-step">apply human judgment</div>
+      </div>
+      <div class="takeway-box">
+        <p>The biggest value was not AI writing code. It was building the right constraints first, using multiple expert lenses, and then using AI to execute inside those boundaries.</p>
+        <p style="margin-top: 0.75rem;">AI is a fast junior who occasionally hallucinates the docs. The value is in knowing exactly what to ask for and having the specs to keep it honest.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn" id="prev" onclick="go(-1)" disabled>&lt; prev</button>
+    <div class="dots" id="dots"></div>
+    <button class="nav-btn" id="next" onclick="go(1)">next &gt;</button>
+  </div>
+</div>
+
+<script>
+  const total = 7;
+  let cur = 0;
+  const dotsEl = document.getElementById('dots');
+  for (let i = 0; i < total; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => { const delta = i - cur; if (delta !== 0) go(delta); };
+    dotsEl.appendChild(d);
+  }
+  function go(delta) {
+    document.getElementById('s' + cur).classList.remove('active');
+    dotsEl.children[cur].classList.remove('active');
+    cur = Math.max(0, Math.min(total - 1, cur + delta));
+    document.getElementById('s' + cur).classList.add('active');
+    dotsEl.children[cur].classList.add('active');
+    document.getElementById('prev').disabled = cur === 0;
+    document.getElementById('next').disabled = cur === total - 1;
+  }
+</script>
+
+</body>
+</html>
