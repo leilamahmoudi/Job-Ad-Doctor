@@ -14,10 +14,14 @@ const STEPS: { n: 1 | 2 | 3; label: string }[] = [
 export function ProgressIndicator({ currentStep, onStepClick }: ProgressIndicatorProps) {
   return (
     <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between h-12 bg-primary px-4 sm:px-6">
-      <div className="flex items-center gap-2">
+      <button
+        onClick={() => onStepClick?.(1)}
+        className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+        aria-label="Go to start"
+      >
         <span className="text-lg font-bold text-primary-foreground leading-none">&#8478;</span>
         <span className="text-sm font-semibold text-primary-foreground">Job Ad Doctor</span>
-      </div>
+      </button>
 
       <div className="flex items-center gap-1.5 sm:gap-2">
         {STEPS.map(({ n, label }, i) => {
