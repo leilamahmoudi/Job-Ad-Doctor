@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from 'next'
-import { Geist } from 'next/font/google'
+import { Lato } from 'next/font/google'
 import './globals.css'
 
-const geist = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
+const lato = Lato({ weight: ['400', '700'], variable: '--font-lato', subsets: ['latin'], display: 'swap' })
 
 export const metadata: Metadata = {
   title: 'Job Ad Doctor — Diagnose & rewrite your job ads',
@@ -17,7 +17,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${geist.variable} h-full antialiased`}>
+    <html lang="en" className={`${lato.variable} h-full antialiased`}>
       <body className="min-h-full bg-background">{children}</body>
     </html>
   )
