@@ -143,7 +143,7 @@ Tests cover the three pure, high-risk library functions: rate limiter, LLM respo
 ### Decisions
 
 **Gemini over Claude/OpenAI**
-Free tier is generous and `gemini-2.5-flash` is fast enough that the diagnosis round-trip feels snappy on mobile. I added a `gemini-2.5-flash-lite` fallback in case the primary model is rate-limited. If this were production, I'd evaluate Claude for prompt adherence — it's stricter about following JSON-only instructions, which matters for the diagnosis route.
+Free tier is generous and `gemini-2.0-flash` is fast enough that the diagnosis round-trip feels snappy on mobile. I added a `gemini-2.5-flash-lite` fallback in case the primary model is rate-limited. If this were production, I'd evaluate Claude for prompt adherence — it's stricter about following JSON-only instructions, which matters for the diagnosis route.
 
 **Two LLM calls, not one**
 I split diagnosis and rewrite into separate API routes so each call has a tighter, single-purpose prompt. A single combined call would be cheaper but the prompt gets unwieldy and the failure modes are harder to isolate. The prefetch trick (rewrite starts in the background the moment diagnosis completes) means the user pays no extra wait time.
