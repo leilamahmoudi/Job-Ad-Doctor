@@ -50,6 +50,7 @@ export interface WeaknessResult {
 export interface DiagnosisResult {
   isJobAd: boolean
   isLegal: boolean
+  illegalReason?: string
   weaknesses: Record<WeaknessKey, WeaknessResult>
 }
 

@@ -81,7 +81,10 @@ export async function POST(req: NextRequest) {
   }
 
   if (!diagnosis.isLegal) {
-    return NextResponse.json({ error: "We can't analyse this ad." }, { status: 422 })
+    return NextResponse.json(
+      { error: "We can't analyse this ad.", reason: diagnosis.illegalReason ?? null },
+      { status: 422 }
+    )
   }
 
   return NextResponse.json(diagnosis)

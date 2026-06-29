@@ -15,7 +15,8 @@ export function validateDiagnosis(raw: unknown): DiagnosisResult {
   }
 
   if (obj.isLegal === false) {
-    return { isJobAd: true, isLegal: false, weaknesses: {} as DiagnosisResult['weaknesses'] }
+    const illegalReason = typeof obj.illegalReason === 'string' ? obj.illegalReason : undefined
+    return { isJobAd: true, isLegal: false, illegalReason, weaknesses: {} as DiagnosisResult['weaknesses'] }
   }
 
   // Full shape required when isJobAd:true and isLegal:true
