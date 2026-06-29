@@ -178,3 +178,59 @@ The layout works well on mobile but I didn't obsess over every breakpoint or tes
 3. Add a SHA-256 cache for repeated diagnosis calls
 4. A/B test the email capture placement (before vs. after rewrite reveal)
 5. Add MCP integration: pull company tone-of-voice and open roles from the Teamtailor API so the rewrite is grounded in real brand context, not just what the user types
+
+---
+
+## API / MCP integration — what exists and what the full version looks like
+
+### What exists now
+
+Step 1 has two optional fields: company name and a one-line company description. Both are passed directly into the diagnosis and rewrite prompts via a `<company_context>` tag, so the LLM already uses brand context when it's provided. This is the lightweight version of the concept: same data, manual input.
+
+```
+[ Company name (optional)               ]
+[ What does your company do? (optional) ]  e.g. "B2B SaaS for HR teams, 80 people"
+```
+
+The prompt architecture is already built to receive structured company context. The integration layer is purely additive — it would enrich what goes into `<company_context>`, without changing how the prompts or UI work.
+
+### What was scoped out and why
+
+Automatically pulling that context via API or MCP was out of scope for the time budget. The free-text fields prove the concept works. For a 2-hour prototype, stubbing with manual input and speccing the real version is the right call.
+
+### The Teamtailor API integration — spec
+
+Teamtailor already holds everything the tool needs:
+
+| Data | Where it comes from | How it improves the tool |
+|------|-------------------|--------------------------|
+| Company profile | Company settings | Grounds the rewrite in real brand voice |
+| Employer brand content | Culture / life-at sections | Gives the LLM specific culture signals, not adjectives |
+| Open roles | Jobs API | Confirms role title, seniority, department |
+| Published job ads | Jobs API | Lets the LLM calibrate tone against existing ads |
+
+A lightweight integration would work like this:
+
+1. User pastes a job ad
+2. The app extracts the role title and company name from the text (one small LLM call or a regex pass)
+3. It queries the Teamtailor API with those values to fetch the matching company profile and role data
+4. That data is injected into `<company_context>` automatically — no manual input required
+
+### The MCP version — spec
+
+An MCP server on top of the Teamtailor API would expose tools the LLM can call mid-prompt:
+
+```ts
+get_company_profile(company_name: string)
+  -> { name, industry, size, culture_description, tone_signals }
+
+get_open_roles(company_id: string)
+  -> [{ title, department, seniority, requirements }]
+
+get_published_job_ads(company_id: string)
+  -> [{ title, body }]
+```
+
+The model would call these tools before generating the diagnosis or rewrite, deciding what to fetch based on what it finds in the job ad. If it detects a senior engineering role, it can pull comparable published ads to calibrate tone. If the company has a documented culture section, that feeds directly into the employer branding diagnosis.
+
+This is more powerful than a static API call because the model drives the enrichment rather than the app hard-coding what to fetch.
