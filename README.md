@@ -2,7 +2,9 @@
 
 A 3-step web app that diagnoses weaknesses in job ads and rewrites them in three tones — using Google Gemini, deployed on Vercel.
 
-**Live:** [job-ad-doctor.vercel.app](https://job-ad-doctor.vercel.app) · **AI workflow:** [job-ad-doctor.vercel.app/slides](https://job-ad-doctor.vercel.app/slides)
+**Live:** [job-ad-doctor.vercel.app](https://job-ad-doctor.vercel.app)
+
+**How I used AI to build this** — a 7-slide walkthrough of the spec-driven development approach, the actual prompts, and where AI helped vs. got in the way: [job-ad-doctor.vercel.app/slides](https://job-ad-doctor.vercel.app/slides)
 
 ---
 
