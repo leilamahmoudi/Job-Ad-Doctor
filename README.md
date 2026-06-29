@@ -2,7 +2,7 @@
 
 A 3-step web app that diagnoses weaknesses in job ads and rewrites them in three tones — using Google Gemini, deployed on Vercel.
 
-**Live:** [job-ad-doctor.vercel.app](https://job-ad-doctor.vercel.app)
+**Live:** [job-ad-doctor.vercel.app](https://job-ad-doctor.vercel.app) · **AI workflow:** [job-ad-doctor.vercel.app/slides](https://job-ad-doctor.vercel.app/slides)
 
 ---
 
