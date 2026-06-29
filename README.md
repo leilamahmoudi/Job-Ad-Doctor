@@ -4,7 +4,7 @@ A 3-step web app that diagnoses weaknesses in job ads and rewrites them in three
 
 **Live:** [job-ad-doctor.vercel.app](https://job-ad-doctor.vercel.app)
 
-**How I used AI to build this** — a 7-slide walkthrough of the spec-driven development approach, the actual prompts, and where AI helped vs. got in the way: [job-ad-doctor.vercel.app/slides](https://job-ad-doctor.vercel.app/slides)
+**How I used AI to build this** — a 7-slide walkthrough of the spec-driven development approach: [job-ad-doctor.vercel.app/slides](https://job-ad-doctor.vercel.app/slides)
 
 ---
 
@@ -163,7 +163,7 @@ Captured emails go to Resend and that's it. In production I'd write every `{ ema
 Identical job ads would hit the LLM twice. The fix is straightforward — SHA-256 the job ad + company context, store the diagnosis in Redis with a short TTL — but it adds infrastructure I didn't want to stub just for show.
 
 **Auth / session**
-No accounts. Intentional: the whole point is zero friction. Even asking for email before showing the rewrite would drop conversion. I put email capture *after* the value is delivered, which is why it's at the bottom of Step 3.
+No accounts. Intentional: the whole point is zero friction. Even asking for email before showing the rewrite would drop conversion. I put email capture _after_ the value is delivered, which is why it's at the bottom of Step 3.
 
 **Abuse / junk-lead filtering**
 Right now any string passes as a "job ad" as long as it clears a minimum length check. The `isJobAd` flag from the LLM catches obvious non-ads, but a determined user could still burn tokens. Production fix: stricter server-side validation + Cloudflare WAF + honeypot field on the email form.
