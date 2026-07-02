@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Joint Reflection — Job Ad Doctor</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d1117; --surface: #161b22; --surface2: #1e2530;
+      --border: rgba(99,179,237,0.15); --blue: #63b3ed; --blue-dim: rgba(99,179,237,0.12);
+      --teal: #4fd1c5; --teal-dim: rgba(79,209,197,0.12);
+      --amber: #f6ad55; --amber-dim: rgba(246,173,85,0.1);
+      --text: #e2e8f0; --muted: #8892a4; --faint: #4a5568;
+    }
+    html, body { height: 100%; }
+    body { background: var(--bg); font-family: 'JetBrains Mono','Fira Code',monospace; color: var(--text); display: flex; flex-direction: column; min-height: 100vh; }
+    .wrap { flex: 1; display: flex; flex-direction: column; max-width: 760px; margin: 0 auto; width: 100%; }
+    .slide { display: none; flex: 1; padding: 2rem 2.5rem 1.5rem; flex-direction: column; justify-content: flex-start; }
+    .slide.active { display: flex; }
+    .slide-num { font-size: 11px; color: var(--faint); letter-spacing: 0.12em; margin-bottom: 1.25rem; }
+    .slide-num span { color: var(--blue); }
+    h1 { font-size: 20px; font-weight: 500; color: var(--text); line-height: 1.35; margin-bottom: 1rem; }
+    p { font-size: 13px; color: var(--muted); line-height: 1.85; }
+    p + p { margin-top: 0.85rem; }
+    .q-tag { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--amber); background: var(--amber-dim); border: 0.5px solid rgba(246,173,85,0.25); padding: 4px 12px; border-radius: 99px; margin-bottom: 0.85rem; letter-spacing: 0.04em; }
+    .q-tag::before { content: '//'; opacity: 0.5; }
+    .question-box { background: var(--surface2); border-left: 2px solid var(--amber); padding: 0.9rem 1.1rem; margin-bottom: 1.25rem; border-radius: 0 6px 6px 0; }
+    .question-box p { font-size: 12.5px; color: #cbd5e0; font-style: italic; line-height: 1.7; }
+    .answer-label { font-size: 10px; color: var(--blue); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.6rem; }
+    code { font-size: 12px; color: var(--amber); background: var(--amber-dim); padding: 1px 6px; border-radius: 4px; }
+    .flow { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 1.25rem; }
+    .flow-step { font-size: 12px; color: var(--teal); background: var(--teal-dim); border: 0.5px solid rgba(79,209,197,0.2); border-radius: 6px; padding: 6px 14px; }
+    .flow-arrow { color: var(--faint); font-size: 14px; }
+    .closing-box { background: var(--surface2); border-left: 2px solid var(--teal); padding: 1rem 1.25rem; margin-top: 1rem; border-radius: 0 6px 6px 0; }
+    .closing-box p { font-size: 13px; color: #a0aec0; }
+    .nav { display: flex; align-items: center; justify-content: space-between; padding: 1rem 2.5rem; border-top: 0.5px solid var(--border); background: var(--surface); }
+    .dots { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; }
+    .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--faint); cursor: pointer; transition: background 0.2s, transform 0.2s; }
+    .dot.active { background: var(--blue); transform: scale(1.3); }
+    .nav-btn { font-size: 12px; font-family: 'JetBrains Mono',monospace; font-weight: 500; color: #ffffff; background: var(--faint); border: none; padding: 7px 20px; border-radius: 6px; cursor: pointer; letter-spacing: 0.04em; }
+    .nav-btn:disabled { opacity: 0.2; cursor: default; }
+  </style>
+</head>
+<body>
+
+<div class="wrap">
+  <div id="slides" style="flex:1;display:flex;flex-direction:column;">
+
+    <div class="slide active" id="s0">
+      <div class="slide-num"><span>01</span> / 12</div>
+      <h1>Joint reflection</h1>
+      <p>Four questions. Full answers. This is where team fit shows.</p>
+      <div class="flow" style="margin-top:1.5rem;">
+        <div class="flow-step">Q1: marketer collaboration</div>
+        <div class="flow-arrow">-&gt;</div>
+        <div class="flow-step">Q2: first 48 hours</div>
+        <div class="flow-arrow">-&gt;</div>
+        <div class="flow-step">Q3: wrong assumption</div>
+        <div class="flow-arrow">-&gt;</div>
+        <div class="flow-step">Q4: AI tooling</div>
+      </div>
+    </div>
+
+    <div class="slide" id="s1">
+      <div class="slide-num"><span>02</span> / 12</div>
+      <div class="q-tag">Q1</div>
+      <div class="question-box"><p>You're handed this idea with the other role already on the team (marketer). Where do you need them, where would you push back, and what would you want to own vs. hand off?</p></div>
+      <div class="answer-label">answer</div>
+      <p>I'd see this as a tight collaboration where we own different parts of the same funnel.</p>
+      <p>I'd want to own the product experience and technical execution: the UX flow, the AI prompt quality, performance, mobile experience, and the lead-capture mechanics. In my prototype I made it a three-step flow so users get value first through diagnosis, then rewrites, and only then hit the email capture. That was a deliberate conversion decision, not a UX choice.</p>
+      <p>Where I'd need the marketer most is on traffic quality and intent. They own who we target, what pain points we lead with, and which channels bring the right users in. That directly shapes how I build the experience. If traffic comes in with a "fix your hiring ad" angle from LinkedIn, the first screen should mirror that language and expectation, not show a generic headline.</p>
+    </div>
+
+    <div class="slide" id="s2">
+      <div class="slide-num"><span>03</span> / 12</div>
+      <div class="q-tag">Q1 continued</div>
+      <div class="question-box"><p>You're handed this idea with the other role already on the team (marketer). Where do you need them, where would you push back, and what would you want to own vs. hand off?</p></div>
+      <div class="answer-label">answer continued</div>
+      <p>Where I'd push back is if they want to gate early or optimise for volume over quality. Asking for email before proving value might lift top-of-funnel numbers, but it tanks lead quality and muddies the data. That makes it harder for both of us to improve. That said, the marketer's brief already says full value first, no friction gates. So we'd be aligned on the philosophy. The disagreements would be tactical, not fundamental.</p>
+      <p>What I'd hand off is everything above the product: channel experiments, creative, attribution, campaign logic. What I'd run myself is everything inside it: completion rate, drop-off by step, output quality, email conversion. They run experiments on acquisition, I run experiments on activation. One shared loop, clean boundary.</p>
+      <div class="closing-box"><p>That said, I'd stay curious about what the marketer is seeing. If a channel angle or a piece of creative is resonating in a way I didn't expect, I want to know, because it probably means something about how I should shape the product experience too. I work best with autonomy but I don't confuse autonomy with isolation.</p></div>
+    </div>
+
+    <div class="slide" id="s3">
+      <div class="slide-num"><span>04</span> / 12</div>
+      <div class="q-tag">Q2</div>
+      <div class="question-box"><p>The tool ships and the first numbers are mediocre. Walk us through your first 48 hours: what do you look at, what do you change, who do you pull in?</p></div>
+      <div class="answer-label">answer</div>
+      <p>First thing I'd do is separate the question into two: is this a traffic problem or a product problem? Those need completely different fixes, and you don't want to ship code when the issue is upstream.</p>
+      <p>So in the first hour, I'm not touching the product. I'm looking at the logs first. Are requests even hitting the API routes? Is <code>/api/analyse</code> being called consistently, or are users dropping before they ever start? If analysis calls are low, the product probably isn't the problem. That points to acquisition, messaging, or targeting. That's where I'd pull in the marketer and look at channel quality.</p>
+      <p>If traffic is coming in, then I'd look at drop-off between each step. How many users paste a job ad and reach the diagnosis? How many continue to the rewrite? How many submit their email? Each drop-off point tells a different story.</p>
+    </div>
+
+    <div class="slide" id="s4">
+      <div class="slide-num"><span>05</span> / 12</div>
+      <div class="q-tag">Q2 continued</div>
+      <div class="question-box"><p>The tool ships and the first numbers are mediocre. Walk us through your first 48 hours: what do you look at, what do you change, who do you pull in?</p></div>
+      <div class="answer-label">answer continued</div>
+      <p>If users drop before the diagnosis, it usually means the first value moment is either too slow or not compelling enough. If they see the diagnosis but don't continue, that suggests the feedback feels generic or low-trust. If they get the rewrite but don't submit their email, that's actually a good signal: they got value, but the capture moment or framing needs work. That's a product and marketing conversation, not just an engineering fix.</p>
+      <p>I'd also open the app on my own phone and run through it with a real job ad. Not to test it, but to feel it like a user. Sometimes the issue becomes obvious immediately. Maybe the mobile flow feels awkward, maybe the loading state feels too long, maybe an error state is swallowing failures silently. That's where logs, monitoring, and actual product intuition matter more than dashboards.</p>
+    </div>
+
+    <div class="slide" id="s5">
+      <div class="slide-num"><span>06</span> / 12</div>
+      <div class="q-tag">Q2 continued</div>
+      <div class="question-box"><p>The tool ships and the first numbers are mediocre. Walk us through your first 48 hours: what do you look at, what do you change, who do you pull in?</p></div>
+      <div class="answer-label">answer continued</div>
+      <p>If I find something fixable, I'd ship one change, not five. Maybe it's improving latency, tightening the prompt output, or adjusting the email CTA. But I'd isolate the variable. You can't know what moved the needle if you change everything at once.</p>
+      <p>Who I'd pull in first is the marketer, because everything above step one lives there. I'd keep the circle small but stay transparent about what I'm seeing. Nobody should be surprised by what the data shows. Forty-eight hours is too early to escalate into redesigns or bigger architectural changes. At that stage, you're diagnosing, not rebuilding.</p>
+      <div class="closing-box"><p>The one thing I definitely wouldn't do is start adding features. Fix first. Then iterate.</p></div>
+    </div>
+
+    <div class="slide" id="s6">
+      <div class="slide-num"><span>07</span> / 12</div>
+      <div class="q-tag">Q3</div>
+      <div class="question-box"><p>What's one assumption in this brief you think is wrong or lazy and what would you do instead?</p></div>
+      <div class="answer-label">answer</div>
+      <p>One assumption in the brief I think is lazy is the idea that someone pasting a live job ad is automatically a high-intent lead. That's directionally true, but it collapses very different user motivations into one bucket.</p>
+      <p>A hiring manager might be actively hiring, but they might also be benchmarking a job ad, experimenting with AI, or fixing an internal posting with no buying intent. A recruiter already locked into another ATS might use the tool and love it but never become pipeline. And the brief treats all of these the same. An email address is an email address. But an email alone tells you almost nothing. Someone pasting a job ad for a part-time barista role is not the same lead as someone posting a Head of Engineering role at a 200-person SaaS company. Both submit an email. The marketer gets two identical rows in a spreadsheet.</p>
+    </div>
+
+    <div class="slide" id="s7">
+      <div class="slide-num"><span>08</span> / 12</div>
+      <div class="q-tag">Q3 continued</div>
+      <div class="question-box"><p>What's one assumption in this brief you think is wrong or lazy and what would you do instead?</p></div>
+      <div class="answer-label">answer continued</div>
+      <p>The lazy part is that the real signal is already inside the tool and we're throwing it away. By the time a user hits "send to my inbox" you already know: the role, the seniority, which of the eight weaknesses fired, whether they added company context, which tone they chose. That's a lead profile. Not a row.</p>
+      <p>What I'd do instead is treat intent as progressive, not binary. Keep the experience frictionless, but add lightweight qualification signals after value is delivered. "Are you hiring for this role right now?", "How many roles are you hiring this quarter?", "Do you already use an ATS?" Small questions, high signal. That separates curiosity from real pipeline without hurting the product experience.</p>
+    </div>
+
+    <div class="slide" id="s8">
+      <div class="slide-num"><span>09</span> / 12</div>
+      <div class="q-tag">Q3 continued</div>
+      <div class="question-box"><p>What's one assumption in this brief you think is wrong or lazy and what would you do instead?</p></div>
+      <div class="answer-label">answer continued</div>
+      <p>It also changes how you define success. The north star shouldn't be email capture rate alone. It should be qualified capture rate. Ten recruiters actively hiring is more valuable than fifty curious users testing the tool. And for a lead-gen experiment, signal quality matters more than raw volume.</p>
+      <div class="closing-box"><p>The product still solves the same problem. But the signal quality becomes much stronger. And that makes the whole experiment sharper for both sides of the team.</p></div>
+    </div>
+
+    <div class="slide" id="s9">
+      <div class="slide-num"><span>10</span> / 12</div>
+      <div class="q-tag">Q4</div>
+      <div class="question-box"><p>Show us how you used AI tooling on this case. Paste a couple of your actual prompts and tell us where it helped and where it got in the way.</p></div>
+      <div class="answer-label">answer</div>
+      <p>Rather than list prompts here, I documented the complete approach as a separate presentation. There's a whole way of thinking behind how I used AI on this project, and it deserves more than a bullet list.</p>
+      <p>The short version: I used Claude Code not as a code generator but as something to execute inside constraints I designed first. Before writing a single component, I built the spec, the role documents, and the build plan. AI had explicit boundaries to work within, and that's what made it reliable.</p>
+      <div class="flow" style="margin-top:1.25rem;">
+        <div class="flow-step">product spec first</div>
+        <div class="flow-arrow">-&gt;</div>
+        <div class="flow-step">role documents as constraints</div>
+        <div class="flow-arrow">-&gt;</div>
+        <div class="flow-step">build inside boundaries</div>
+        <div class="flow-arrow">-&gt;</div>
+        <div class="flow-step">apply human judgment</div>
+      </div>
+    </div>
+
+    <div class="slide" id="s10">
+      <div class="slide-num"><span>11</span> / 12</div>
+      <div class="q-tag">Q4 continued</div>
+      <div class="question-box"><p>Show us how you used AI tooling on this case. Paste a couple of your actual prompts and tell us where it helped and where it got in the way.</p></div>
+      <div class="answer-label">answer continued</div>
+      <p>Before writing a single component, I used Claude Code to build the constraints of the project first. Not just a product spec, but the roles that would normally exist around a product like this: senior engineer, prompt engineer, designer, employer branding specialist, performance marketer, recruitment copywriter. Each role had its own lens, quality bar, and decision ownership.</p>
+      <p>The idea was: if the engineer says the architecture is sound, the prompt engineer says the output is reliable, the designer says the flow is clear, and the marketer says the lead capture feels honest, then the implementation has a much stronger foundation. I built a mini operating model around the product before I built the product.</p>
+      <div class="closing-box"><p>Full walkthrough with actual prompts at job-ad-doctor.vercel.app/slides</p></div>
+    </div>
+
+    <div class="slide" id="s11">
+      <div class="slide-num"><span>12</span> / 12</div>
+      <h1>That's the reflection.</h1>
+      <p style="margin-top:0.5rem;">Live app, codebase, and full AI workflow presentation all linked from the README.</p>
+      <div class="flow" style="margin-top:1.5rem;">
+        <div class="flow-step">job-ad-doctor.vercel.app</div>
+        <div class="flow-arrow">-&gt;</div>
+        <div class="flow-step">job-ad-doctor.vercel.app/slides</div>
+        <div class="flow-arrow">-&gt;</div>
+        <div class="flow-step">job-ad-doctor.vercel.app/reflection</div>
+      </div>
+    </div>
+
+  </div>
+  <div class="nav">
+    <button class="nav-btn" id="prev" onclick="go(-1)" disabled>&lt; prev</button>
+    <div class="dots" id="dots"></div>
+    <button class="nav-btn" id="next" onclick="go(1)">next &gt;</button>
+  </div>
+</div>
+
+<script>
+  const total = 12; let cur = 0;
+  const dotsEl = document.getElementById('dots');
+  for (let i = 0; i < total; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => { const delta = i - cur; if (delta !== 0) go(delta); };
+    dotsEl.appendChild(d);
+  }
+  function go(delta) {
+    document.getElementById('s' + cur).classList.remove('active');
+    dotsEl.children[cur].classList.remove('active');
+    cur = Math.max(0, Math.min(total - 1, cur + delta));
+    document.getElementById('s' + cur).classList.add('active');
+    dotsEl.children[cur].classList.add('active');
+    document.getElementById('prev').disabled = cur === 0;
+    document.getElementById('next').disabled = cur === total - 1;
+  }
+</script>
+
+</body>
+</html>

@@ -6,6 +6,8 @@ A 3-step web app that diagnoses weaknesses in job ads and rewrites them in three
 
 **How I used AI to build this** 7-slide walkthrough of the spec-driven development approach: [job-ad-doctor.vercel.app/slides](https://job-ad-doctor.vercel.app/slides)
 
+**Joint reflection** Full answers to the four case study reflection questions (marketer collaboration, first 48 hours, wrong assumption, AI tooling): [job-ad-doctor.vercel.app/reflection](https://job-ad-doctor.vercel.app/reflection)
+
 ---
 
 ## What it does
